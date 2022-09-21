@@ -25,22 +25,31 @@ end
 # Player breaks code
 class PlayBreaker
   def initialize(player, comp)
+    @player = player
+    @comp = comp
+    play_game
+  end
+  
+  def play_game
     puts 'The computer has chosen a code. You have 12 attempts to guess it. Please input your first guess using 4'\
       ' digits between 1 and 6.'
     times = 0
     until times == 12
       times += 1
-      @guess = gets.chomp
-      fb = comp.give_feedback(@guess.split(//).map(&:to_i))
-      puts "The computer says: #{fb}"
-      if fb == 'XXXX'
-        declare_victory(times)
-        break
-      elsif times == 12
-        puts '0 tries left. Better luck next time!'
-      else
-        puts "Number of tries left: #{12 - times}. Make your next guess:"
-      end
+      @guess = gets.chomp 
+      break unless eval_feedback(@comp.give_feedback(@guess.split(//).map(&:to_i)), times) == 'next'
+    end
+  end
+
+  def eval_feedback(feedback, times)
+    puts "The computer says: #{feedback}"
+    if feedback == 'XXXX'
+      declare_victory(times)
+    elsif times == 12
+      puts '0 tries left. Better luck next time!'
+    else
+      puts "Number of tries left: #{12 - times}. Make your next guess:"
+      'next'
     end
   end
 
@@ -70,16 +79,16 @@ class Computer
     @code = Array.new(4) { COLORS.sample } # generate random code using 6 colors
   end
 
-  def give_feedback(guess, fb = [])
+  def give_feedback(guess, feedback = [])
     p @code.join
     guess.each_with_index do |color, i|
       case @code.count(color)
       when 0 then next
-      when 1 then fb.push(i == @code.index(color) ? 'X' : 'O')
-      else fb.push(@code[i] == color ? 'X' : 'O')
+      when 1 then feedback.push(i == @code.index(color) ? 'X' : 'O')
+      else feedback.push(@code[i] == color ? 'X' : 'O')
       end
     end
-    fb.shuffle.join
+    feedback.shuffle.join
   end
 end
 
