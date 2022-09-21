@@ -9,39 +9,58 @@ end
 class Game
   def initialize
     # game = #select_game - Give user choice to be code maker or code breaker (comment out at first).
-    PlayBreaker.new(Player.new, Computer.new)
+    player = Player.new('break')
+    PlayBreaker.new(player, Computer.new)
 
   end
 end
 
 # Play makes code
-class PlayMaker < Game
+class PlayMaker
   def initialize(player, comp)
     # Let player input 4 digits, store in array @code (convert string to array)
   end
 end
 
 # Player breaks code
-class PlayBreaker < Game
+class PlayBreaker
   def initialize(player, comp)
-    puts 'The computer has chosen a code. You have 12 attempts to guess it. Please input your first guess using 4 digits between 1-6:'
-    @guess = gets.chomp
-    puts "The computer says: #{comp.give_feedback(@guess.split(//).map(&:to_i))}"
+    puts 'The computer has chosen a code. You have 12 attempts to guess it. Please input your first guess using 4'\
+      ' digits between 1 and 6.'
+    times = 0
+    until times == 12
+      times += 1
+      @guess = gets.chomp
+      fb = comp.give_feedback(@guess.split(//).map(&:to_i))
+      puts "The computer says: #{fb}"
+      if fb == 'XXXX'
+        declare_victory(times)
+        break
+      elsif times == 12
+        puts '0 tries left. Better luck next time!'
+      else
+        puts "Number of tries left: #{12 - times}. Make your next guess:"
+      end
+    end
+  end
 
-    # times = 0
-    # 	Send @guess to Computer.give_feedback(@guess, [])
-    # 	times +=1
-    # 	until feedback is 'XXXX' or count is 12
-    # if feedback is XXXX
-    # 	say you guessed correctly!
-    # else
-    # 	print you've run out of guesses! better luck next time :)
+  def declare_victory(num)
+    if num > 10 then puts "You guessed it in #{num} tries, just in the nick of time!"
+    elsif num > 6 then puts "You guessed it in #{num} tries! Great job!"
+    elsif num > 1 then puts "Wow, you guessed it in #{num} tries. That's amazing!"
+    else
+      puts 'What luck! You guessed it the first time!'
+    end
   end
 end
 
 # Player
 class Player
   attr_reader :mode # make or break
+
+  def initialize(mode)
+    @mode = mode
+  end
 end
 
 # Computer
@@ -53,26 +72,14 @@ class Computer
 
   def give_feedback(guess, fb = [])
     p @code.join
-    # check guess against code and shuffle resulting feedback
     guess.each_with_index do |color, i|
       case @code.count(color)
-      when 0
-        next
-      when 1
-        if i == @code.index(color)
-          fb.push('X')
-        else
-          fb.push('O')
-        end
-      else
-        if @code[i] == color
-          fb.push('X')
-        else
-          fb.push('O')
-        end
+      when 0 then next
+      when 1 then fb.push(i == @code.index(color) ? 'X' : 'O')
+      else fb.push(@code[i] == color ? 'X' : 'O')
       end
     end
-    fb.join
+    fb.shuffle.join
   end
 end
 
