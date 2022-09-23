@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'pry-byebug'
 
 # Mastermind
 module Mastermind
@@ -40,13 +41,13 @@ class PlayMaker
   def play_game
     times = 0
     guess = %w[0 0 0 0]
+    feedback = ''
     while times < 3
       puts "this time times is #{times}"
       break if @player.code_is(guess)
 
-      feedback = @player.give_feedback(guess)
-      puts feedback
       guess = @comp.make_guess(feedback, times)
+      feedback = @player.give_feedback(guess)
       times += 1
     end
   end
@@ -94,25 +95,27 @@ class PlayBreaker
 end
 
 # Player
-class Player < Entity
+class Player
   def make_code
     puts 'Please input 4 digits between 1-6 for the computer to guess:'
-    @code = %w[1 2 3 4] # gets.chomp.split(//)
+    @code = [1, 2, 3, 4] # gets.chomp.split(//)
   end
 
   def code_is(guess)
     guess.eql?(@code)
   end
 
-  def give_feedback(guess, feedback = [])
+  def give_feedback(guess, feedback = '')
+    p guess
     guess.each_with_index do |color, i|
       case @code.count(color)
       when 0 then next
-      when 1 then feedback.push(i == @code.index(color) ? 'X' : 'O')
-      else feedback.push(@code[i] == color ? 'X' : 'O')
+      when 1 then feedback += i == @code.index(color) ? 'X' : 'O'
+      else feedback += @code[i] == color ? 'X' : 'O'
       end
     end
-    feedback.shuffle.join
+    p feedback
+    feedback.split('').shuffle.join
   end
 end
 
@@ -121,26 +124,28 @@ class CompCodeMaker
   include Mastermind
 
   def initialize
-    @code = Array.new(4) { COLORS.sample } # generate random code using 6 colors
+    @code = [1, 2, 3, 4]#Array.new(4) { COLORS.sample } # generate random code using 6 colors
   end
 
-  def give_feedback(guess, feedback = [])
+  def give_feedback(guess, feedback = '')
+    p guess
     guess.each_with_index do |color, i|
+      binding.pry
       case @code.count(color)
       when 0 then next
-      when 1 then feedback.push(i == @code.index(color) ? 'X' : 'O')
-      else feedback.push(@code[i] == color ? 'X' : 'O')
+      when 1 then feedback += i == @code.index(color) ? 'X' : 'O'
+      else feedback += @code[i] == color ? 'X' : 'O'
       end
     end
-    feedback.shuffle.join
+    feedback.split('').shuffle.join
+  end
 end
 
 # Computer Code Breaker
-class CompCodeBreaker < Entity
+class CompCodeBreaker
   def initialize
-    super
     create_guess_list
-    @guess = %w[1 1 2 2]
+    @guess = [1, 1, 2, 2]
   end
 
   def create_guess_list
@@ -150,18 +155,18 @@ class CompCodeBreaker < Entity
   end
 
   def make_guess(feedback, times)
-    @guess if times.zero?
+    return @guess if times.zero?
     # 1) After you got the answer (number of red and number of white pegs) 
       # eliminate from the list of candidates all codes that would not have produced the same answer if they were the secret code.
-    puts feedback
+
     clean_up_list(feedback)
     # 2) Pick the first element in the list and use it as new guess.
     @guess = @list.first
-    @guess
   end
 
   def clean_up_list(feedback)
     fb = ''
+    #old_list = @list
     feedback = feedback.chars.sort.join
     @list.each_with_index do |arr, i|
       @guess.each_with_index do |color, j|
@@ -171,22 +176,10 @@ class CompCodeBreaker < Entity
         else fb += arr[j] == color ? 'X' : 'O'
         end
       end
-      
       @list.delete_at(i) unless fb.chars.sort.join == feedback
     end
+    #p old_list.difference(@list)
   end
-
-  # def gives_same_feedback?(code, feedback)
-  #   code.each_with_index do |color, i|
-  #     case @code.count(color)
-  #     when 0 then next
-  #     when 1 then feedback.push(i == @code.index(color) ? 'X' : 'O')
-  #     else feedback.push(@code[i] == color ? 'X' : 'O')
-  #     end
-  #   end
-  #   feedback.shuffle.join
-  # end
-
 end
 
 Game.new
