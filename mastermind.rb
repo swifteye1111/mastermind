@@ -9,9 +9,9 @@ end
 class Game
   def initialize
     if select_game == 'breaker'
-      PlayBreaker.new(Player.new('break'), Computer.new)
+      PlayBreaker.new(Player.new, CompCodeMaker.new)
     else
-      PlayMaker.new(Player.new('make'), Computer.new)
+      PlayMaker.new(Player.new, CompCodeBreaker.new)
     end
   end
 
@@ -30,6 +30,24 @@ end
 class PlayMaker
   def initialize(player, comp)
     # Let player input 4 digits, store in array @code (convert string to array)
+    @player = player
+    @comp = comp
+    player.make_code
+
+    play_game
+  end
+
+  def play_game
+    times = 0
+    guess = %w[0 0 0 0]
+    while times < 12
+      break if @player.code_is(guess)
+
+      feedback = @player.give_feedback(guess)
+      puts feedback
+      guess = @comp.make_guess(feedback)
+      times += 1
+    end
   end
 end
 
@@ -74,24 +92,9 @@ class PlayBreaker
   end
 end
 
-# Player
-class Player
-  attr_reader :mode # make or break
-
-  def initialize(mode)
-    @mode = mode
-  end
-end
-
-# Computer
-class Computer
-  include Mastermind
-  def initialize
-    @code = Array.new(4) { COLORS.sample } # generate random code using 6 colors
-  end
-
+# Entity
+class Entity
   def give_feedback(guess, feedback = [])
-    p @code.join
     guess.each_with_index do |color, i|
       case @code.count(color)
       when 0 then next
@@ -103,20 +106,49 @@ class Computer
   end
 end
 
+# Player
+class Player < Entity
+  def make_code
+    puts 'Please input 4 digits between 1-6 for the computer to guess:'
+    @code = %w[1 2 3 4] # gets.chomp.split(//)
+  end
 
+  def code_is(guess)
+    guess.eql?(@code)
+  end
+end
 
-#select_game
+# Computer Code Maker
+class CompCodeMaker < Entity
+  include Mastermind
 
+  def initialize
+    super
+    @code = Array.new(4) { COLORS.sample } # generate random code using 6 colors
+  end
+end
 
-#run_maker(player)
-  # print instructions (choose 4 digits)
-  # get digits & verify input, store in secret variable "code" (not accessible to Computer)
-  # Computer.new()
+# Computer Code Breaker
+class CompCodeBreaker < Entity
+  def initialize
+    super
+    create_guess_list
+    @guess = %w[1 1 2 2]
+  end
 
-# #process_guess
-# 	guess = Computer.make_guess
+  def make_guess(feedback)
+    @guess
+  end
 
-
-
+  def create_guess_list
+    @list = []
+    num = 1111
+    while num < 6667
+      puts num.to_s.split(//)
+      @list.push(num.to_s.split(//))
+      num += 1
+    end
+  end
+end
 
 Game.new
