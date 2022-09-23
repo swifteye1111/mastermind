@@ -8,10 +8,21 @@ end
 # Game
 class Game
   def initialize
-    # game = #select_game - Give user choice to be code maker or code breaker (comment out at first).
-    player = Player.new('break')
-    PlayBreaker.new(player, Computer.new)
+    if select_game == 'breaker'
+      PlayBreaker.new(Player.new('break'), Computer.new)
+    else
+      PlayMaker.new(Player.new('make'), Computer.new)
+    end
+  end
 
+  def select_game
+    puts 'Choose your role: code maker (1) or code breaker (2)?'
+    choice = gets.chomp.to_i
+    until choice == 1 || choice == 2
+      puts 'Please input 1 or 2:'
+      choice = gets.chomp.to_i
+    end
+    choice == 1 ? 'maker' : 'breaker'
   end
 end
 
@@ -29,14 +40,14 @@ class PlayBreaker
     @comp = comp
     play_game
   end
-  
+
   def play_game
     puts 'The computer has chosen a code. You have 12 attempts to guess it. Please input your first guess using 4'\
       ' digits between 1 and 6.'
     times = 0
     until times == 12
       times += 1
-      @guess = gets.chomp 
+      @guess = gets.chomp
       break unless eval_feedback(@comp.give_feedback(@guess.split(//).map(&:to_i)), times) == 'next'
     end
   end
@@ -95,13 +106,7 @@ end
 
 
 #select_game
-  # print choose your role
-  # choice = gets.chomp
-  # until choice = 1 || choice == 2
-  # 	please input 1 or 2
-  # 	choice = gets.chomp
-  # end
-  # choice == 1 ? play_maker : play_breaker
+
 
 #run_maker(player)
   # print instructions (choose 4 digits)
