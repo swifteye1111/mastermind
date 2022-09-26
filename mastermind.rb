@@ -42,7 +42,7 @@ class PlayMaker
     times = 0
     guess = %w[0 0 0 0]
     feedback = ''
-    while times < 3
+    while times < 12
       puts "this time times is #{times}"
       break if @player.code_is(guess)
 
@@ -76,7 +76,7 @@ class PlayBreaker
     puts "The computer says: #{feedback}"
     if feedback == 'XXXX'
       declare_victory(times)
-    elsif times == 12
+    elsif times == 5
       puts '0 tries left. Better luck next time!'
     else
       puts "Number of tries left: #{12 - times}. Make your next guess:"
@@ -107,6 +107,7 @@ class Player
 
   def give_feedback(guess, feedback = '')
     temp = @code.map(&:clone)
+    guess = guess.map(&:clone)
     temp.each_with_index do |color, i|
       if guess[i] == color
         feedback += 'X'
@@ -171,20 +172,24 @@ class CompCodeBreaker
   end
 
   def clean_up_list(feedback)
-    fb = ''
-    #old_list = @list
     feedback = feedback.chars.sort.join
     @list.each_with_index do |arr, i|
-      @guess.each_with_index do |color, j|
-        case arr.count(color)
-        when 0 then next
-        when 1 then fb += j == arr.index(color) ? 'X' : 'O'
-        else fb += arr[j] == color ? 'X' : 'O'
+      fb = ''
+      temp = arr.map(&:clone)
+      temp_guess = @guess.map(&:clone)
+      temp.each_with_index do |color, j|
+        if temp_guess[j] == color
+          fb += 'X'
+          temp_guess[j] = 0
+          temp[j] = -1
+        elsif temp_guess.any?(color)
+          fb += 'O'
+          temp[j] = 0
+          temp_guess[temp_guess.index(color)] = -1
         end
       end
       @list.delete_at(i) unless fb.chars.sort.join == feedback
     end
-    #p old_list.difference(@list)
   end
 end
 
