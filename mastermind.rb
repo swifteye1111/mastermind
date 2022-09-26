@@ -98,7 +98,11 @@ end
 class Player
   def make_code
     puts 'Please input 4 digits between 1-6 for the computer to guess:'
-    @code = [1, 2, 3, 4] # gets.chomp.split(//)
+    @code = gets.chomp.split('')
+    @code.each_with_index do |col, i|
+      @code[i] = col.to_i
+    end
+    p @code
   end
 
   def code_is(guess)
