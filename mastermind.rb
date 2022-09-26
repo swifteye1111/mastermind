@@ -46,8 +46,8 @@ class PlayMaker
       puts "this time times is #{times}"
       break if @player.code_is(guess)
 
-      guess = @comp.make_guess(feedback, times)
-      feedback = @player.give_feedback(guess)
+      p guess = @comp.make_guess(feedback, times)
+      p feedback = @player.give_feedback(guess)
       times += 1
     end
   end
@@ -106,15 +106,18 @@ class Player
   end
 
   def give_feedback(guess, feedback = '')
-    p guess
-    guess.each_with_index do |color, i|
-      case @code.count(color)
-      when 0 then next
-      when 1 then feedback += i == @code.index(color) ? 'X' : 'O'
-      else feedback += @code[i] == color ? 'X' : 'O'
+    temp = @code.map(&:clone)
+    temp.each_with_index do |color, i|
+      if guess[i] == color
+        feedback += 'X'
+        temp[i] = 0
+        guess[i] = -1
+      elsif guess.any?(color)
+        feedback += 'O'
+        temp[i] = 0
+        guess[guess.index(color)] = -1
       end
     end
-    p feedback
     feedback.split('').shuffle.join
   end
 end
@@ -128,13 +131,16 @@ class CompCodeMaker
   end
 
   def give_feedback(guess, feedback = '')
-    p guess
-    guess.each_with_index do |color, i|
-      binding.pry
-      case @code.count(color)
-      when 0 then next
-      when 1 then feedback += i == @code.index(color) ? 'X' : 'O'
-      else feedback += @code[i] == color ? 'X' : 'O'
+    temp = @code.map(&:clone)
+    temp.each_with_index do |color, i|
+      if guess[i] == color
+        feedback += 'X'
+        temp[i] = 0
+        guess[i] = -1
+      elsif guess.any?(color)
+        feedback += 'O'
+        temp[i] = 0
+        guess[guess.index(color)] = -1
       end
     end
     feedback.split('').shuffle.join
