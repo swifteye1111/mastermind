@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'pry-byebug'
 
 # Mastermind
 module Mastermind
@@ -19,7 +18,7 @@ class Game
   def select_game
     puts 'Choose your role: code maker (1) or code breaker (2)?'
     choice = gets.chomp.to_i
-    until choice == 1 || choice == 2
+    until [1, 2].include?(choice)
       puts 'Please input 1 or 2:'
       choice = gets.chomp.to_i
     end
@@ -39,16 +38,15 @@ class PlayMaker
   end
 
   def play_game
-    times = 0
-    guess = %w[0 0 0 0]
+    times = 1
     feedback = ''
-    while times < 12
-      puts "this time times is #{times}"
+    while times <= 12
+      puts "Round #{times}, AI guesses #{guess = @comp.make_guess(feedback, times)}."
       break if @player.code_is(guess)
 
-      p guess = @comp.make_guess(feedback, times)
-      p feedback = @player.give_feedback(guess)
+      feedback = @player.give_feedback(guess)
       times += 1
+      puts 'You stumped the AI!' if times == 13
     end
   end
 end
@@ -76,7 +74,7 @@ class PlayBreaker
     puts "The computer says: #{feedback}"
     if feedback == 'XXXX'
       declare_victory(times)
-    elsif times == 5
+    elsif times == 12
       puts '0 tries left. Better luck next time!'
     else
       puts "Number of tries left: #{12 - times}. Make your next guess:"
@@ -99,10 +97,7 @@ class Player
   def make_code
     puts 'Please input 4 digits between 1-6 for the computer to guess:'
     @code = gets.chomp.split('')
-    @code.each_with_index do |col, i|
-      @code[i] = col.to_i
-    end
-    p @code
+    @code.each_with_index { |col, i| @code[i] = col.to_i }
   end
 
   def code_is(guess)
@@ -132,7 +127,7 @@ class CompCodeMaker
   include Mastermind
 
   def initialize
-    @code = [1, 2, 3, 4]#Array.new(4) { COLORS.sample } # generate random code using 6 colors
+    @code = Array.new(4) { COLORS.sample } # generate random code using 6 colors
   end
 
   def give_feedback(guess, feedback = '')
@@ -166,34 +161,36 @@ class CompCodeBreaker
   end
 
   def make_guess(feedback, times)
-    return @guess if times.zero?
-    # 1) After you got the answer (number of red and number of white pegs) 
-      # eliminate from the list of candidates all codes that would not have produced the same answer if they were the secret code.
+    return @guess if times == 1
 
     clean_up_list(feedback)
-    # 2) Pick the first element in the list and use it as new guess.
+    # Pick the first element in the list and use it as new guess.
     @guess = @list.first
   end
 
   def clean_up_list(feedback)
     feedback = feedback.chars.sort.join
-    @list.each_with_index do |arr, i|
-      fb = ''
-      temp = arr.map(&:clone)
+    @list.each_with_index do |item, i|
+      temp_item = item.map(&:clone)
       temp_guess = @guess.map(&:clone)
-      temp.each_with_index do |color, j|
-        if temp_guess[j] == color
-          fb += 'X'
-          temp_guess[j] = 0
-          temp[j] = -1
-        elsif temp_guess.any?(color)
-          fb += 'O'
-          temp[j] = 0
-          temp_guess[temp_guess.index(color)] = -1
-        end
-      end
-      @list.delete_at(i) unless fb.chars.sort.join == feedback
+      fb = check_list_item(temp_item, temp_guess)
+      @list.delete_at(i) unless fb == feedback
     end
+  end
+
+  def check_list_item(item, guess, fb = '')
+    item.each_with_index do |color, i|
+      if guess[i] == color
+        fb += 'X'
+        guess[i] = 0
+        item[i] = -1
+      elsif guess.any?(color)
+        fb += 'O'
+        item[i] = 0
+        guess[guess.index(color)] = -1
+      end
+    end
+    fb.chars.sort.join
   end
 end
 
