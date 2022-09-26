@@ -17,7 +17,7 @@ class Game
       end
       puts 'Play again? Y/n'
       again = gets.chomp.downcase
-      until ['y','n'].include?(again)
+      until %w[y n].include?(again)
         puts 'Please input "Y" or "n":'
         again = gets.chomp.downcase
       end
