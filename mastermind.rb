@@ -8,10 +8,20 @@ end
 # Game
 class Game
   def initialize
-    if select_game == 'breaker'
+    playing = true
+    while playing
+      if select_game == 'breaker'
       PlayBreaker.new(Player.new, CompCodeMaker.new)
-    else
+      else
       PlayMaker.new(Player.new, CompCodeBreaker.new)
+      end
+      puts 'Play again? Y/n'
+      again = gets.chomp.downcase
+      until ['y','n'].include?(again)
+        puts 'Please input "Y" or "n":'
+        again = gets.chomp.downcase
+      end
+      playing = false if again == 'n'
     end
   end
 
